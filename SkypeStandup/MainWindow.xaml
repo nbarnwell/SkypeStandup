@@ -1,0 +1,50 @@
+﻿<Window x:Class="SkypeStandup.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            <Button Content="_Mute" Name="muteButton" Click="muteButton_Click" MinWidth="75" />
+        </StackPanel>
+        <ScrollViewer>
+            <StackPanel>
+                <TextBlock Text="Key Presses:" />
+                <ListView ItemsSource="{Binding KeyPresses}">
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                </ListView>
+
+                <TextBlock Text="Active Conferences:" />
+                <ListView ItemsSource="{Binding ActiveConferences}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Id, StringFormat=Conference {0}}" />
+                                <ItemsControl Margin="10,0,0,0" ItemsSource="{Binding Participants}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Vertical" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" />
+                                                <TextBlock Text="{Binding Handle}" Margin="4,0,0,0" />
+                                                <TextBlock Text="{Binding Status}" Margin="4,0,0,0" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

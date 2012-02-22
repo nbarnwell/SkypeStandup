@@ -1,0 +1,1 @@
+A very simple app (only a prototype at the time of writing) that listens to Windows Media keypress events using system keyboard hooks in order to mute your mic or hang-up during Skype voice calls.
