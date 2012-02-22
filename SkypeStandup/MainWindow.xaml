@@ -6,18 +6,19 @@
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
             <Button Content="_Mute" Name="muteButton" Click="muteButton_Click" MinWidth="75" />
         </StackPanel>
-        <ScrollViewer>
-            <StackPanel>
-                <TextBlock Text="Key Presses:" />
-                <ListView ItemsSource="{Binding KeyPresses}">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical" />
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                </ListView>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
 
-                <TextBlock Text="Active Conferences:" />
+            <DockPanel Grid.Row="0">
+                <TextBlock Text="Key Presses:" DockPanel.Dock="Top" />
+                <ListView ItemsSource="{Binding KeyPresses}" />
+            </DockPanel>
+
+            <DockPanel Grid.Row="1">
+                <TextBlock Text="Active Conferences:" DockPanel.Dock="Top" />
                 <ListView ItemsSource="{Binding ActiveConferences}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
@@ -43,8 +44,9 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+            </DockPanel>
 
-            </StackPanel>
-        </ScrollViewer>
+        </Grid>
+
     </DockPanel>
 </Window>
