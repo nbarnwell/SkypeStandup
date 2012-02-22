@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,25 @@ namespace SkypeStandup
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private readonly Skype _skype;
+        private bool _logKeyPresses;
+        public bool LogKeyPresses
+        {
+            get { return _logKeyPresses; }
+            set
+            {
+                if (_logKeyPresses) KeyPresses.Clear();
+
+                if (_logKeyPresses != value)
+                {
+                    _logKeyPresses = value;
+                    PropertyChanged(this, new PropertyChangedEventArgs("LogKeyPresses"));
+                }
+            }
+        }
+
         public ObservableCollection<Conference> ActiveConferences { get; private set; }
         public ObservableCollection<Call> ActiveCalls { get; private set; }
         public ObservableCollection<string> KeyPresses { get; private set; }
@@ -72,7 +89,7 @@ namespace SkypeStandup
         private void OnKeyUp(object sender, KeyHookEventArgs keyEventArgs)
         {
             Debug.WriteLine(string.Format("OnKeyUp(sender: {0}, keyEventArgs: {1})", sender, keyEventArgs));
-            KeyPresses.Insert(0, keyEventArgs.Key.ToString());
+            if (LogKeyPresses) KeyPresses.Insert(0, keyEventArgs.Key.ToString());
 
             if (keyEventArgs.Key == VirtualKey.MEDIA_PLAY_PAUSE)
             {
@@ -93,5 +110,7 @@ namespace SkypeStandup
         {
             ((ISkype)_skype).Mute = !((ISkype)_skype).Mute;
         }
+
+        public event PropertyChangedEventHandler PropertyChanged = delegate {};
     }
 }

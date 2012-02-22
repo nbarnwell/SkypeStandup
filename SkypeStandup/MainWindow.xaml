@@ -5,6 +5,7 @@
     <DockPanel>
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
             <Button Content="_Mute" Name="muteButton" Click="muteButton_Click" MinWidth="75" />
+            <CheckBox Content="_Log Keypresses" IsChecked="{Binding LogKeyPresses}" VerticalAlignment="Center" Margin="4,0,0,0" />
         </StackPanel>
         <Grid>
             <Grid.RowDefinitions>
@@ -13,8 +14,8 @@
             </Grid.RowDefinitions>
 
             <DockPanel Grid.Row="0">
-                <TextBlock Text="Key Presses:" DockPanel.Dock="Top" />
-                <ListView ItemsSource="{Binding KeyPresses}" />
+                <Label Content="Key Presses:" DockPanel.Dock="Top" Target="{Binding ElementName=KeyPressesListView}" IsEnabled="{Binding LogKeyPresses}" />
+                <ListView x:Name="KeyPressesListView" ItemsSource="{Binding KeyPresses}" IsEnabled="{Binding LogKeyPresses}" />
             </DockPanel>
 
             <DockPanel Grid.Row="1">
