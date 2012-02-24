@@ -3,6 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <Style x:Key="BlueWindow" TargetType="Window">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStopCollection>
+                            <GradientStop Offset="0.0" Color="#C6DFFF" />
+                            <GradientStop Offset="0.25" Color="#8CBEFF" />
+                        </GradientStopCollection>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>
