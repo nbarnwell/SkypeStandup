@@ -13,22 +13,22 @@ namespace SkypeStandup
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class MainWindow : INotifyPropertyChanged
     {
         const int SkypeProtocol = 9;
 
-        private readonly Skype skype;
-        private bool logKeyPresses;
+        private readonly Skype _skype;
+        private bool _logKeyPresses;
         public bool LogKeyPresses
         {
-            get { return logKeyPresses; }
+            get { return _logKeyPresses; }
             set
             {
-                if (logKeyPresses) KeyPresses.Clear();
+                if (_logKeyPresses) KeyPresses.Clear();
 
-                if (logKeyPresses != value)
+                if (_logKeyPresses != value)
                 {
-                    logKeyPresses = value;
+                    _logKeyPresses = value;
                     PropertyChanged(this, new PropertyChangedEventArgs("LogKeyPresses"));
                 }
             }
@@ -49,23 +49,23 @@ namespace SkypeStandup
             DataContext = this;
             HideOnMinimize.Enable(this);            
 
-            skype = new Skype();
-            skype.CallStatus += SkypeOnCallStatus;
-            ((_ISkypeEvents_Event)skype).AttachmentStatus += SkypeAttachmentStatus;
-            skype.Attach(SkypeProtocol, false);
+            _skype = new Skype();
+            _skype.CallStatus += SkypeOnCallStatus;
+            ((_ISkypeEvents_Event)_skype).AttachmentStatus += SkypeAttachmentStatus;
+            _skype.Attach(SkypeProtocol, false);
             
             KeyboardHook.KeyPressed += OnKeyUp;
             KeyboardHook.SetHooks();
         }
 
-        public void SkypeAttachmentStatus(TAttachmentStatus status)
+        private void SkypeAttachmentStatus(TAttachmentStatus status)
         {
             try
             {
-                if ((((ISkype)skype).AttachmentStatus != TAttachmentStatus.apiAttachSuccess))
+                if ((((ISkype)_skype).AttachmentStatus != TAttachmentStatus.apiAttachSuccess))
                 {
-                    Debug.WriteLine(string.Format("Attachment Status - Converted Status: {0}, TAttachmentStatus: {1}", 
-                        skype.Convert.AttachmentStatusToText((((ISkype)skype).AttachmentStatus)), (((ISkype)skype).AttachmentStatus)));
+                    Debug.WriteLine(string.Format("Attachment Status - Calaunchyonverted Status: {0}, TAttachmentStatus: {1}", 
+                        _skype.Convert.AttachmentStatusToText((((ISkype)_skype).AttachmentStatus)), (((ISkype)_skype).AttachmentStatus)));
                 }
 
                 if (status == TAttachmentStatus.apiAttachRefused)
@@ -77,14 +77,14 @@ namespace SkypeStandup
                 // Also maybe Skype was not running when we started and now is.
                 if (status == TAttachmentStatus.apiAttachAvailable)
                 {
-                    skype.Attach(SkypeProtocol, false);
+                    _skype.Attach(SkypeProtocol, false);
                 }
 
                 // Show are now connected to the Skype client.
                 if (status == TAttachmentStatus.apiAttachSuccess)
                 {
                     Debug.WriteLine("Connected. Attachment Status - Converted Status: {0}, TAttachmentStatus: {1}",
-                        skype.Convert.AttachmentStatusToText((((ISkype)skype).AttachmentStatus)), (((ISkype)skype).AttachmentStatus));
+                        _skype.Convert.AttachmentStatusToText((((ISkype)_skype).AttachmentStatus)), (((ISkype)_skype).AttachmentStatus));
                 }
             }
             catch (Exception e)
@@ -97,14 +97,14 @@ namespace SkypeStandup
         private void SkypeOnCallStatus(Call pCall, TCallStatus status)
         {
             Debug.WriteLine("SkypeOnCallStatus event fired. Call: {0}, Status: {1}", 
-                skype.Convert.CallTypeToText(pCall.Type), skype.Convert.CallStatusToText(status));
+                _skype.Convert.CallTypeToText(pCall.Type), _skype.Convert.CallStatusToText(status));
 
             if (status == TCallStatus.clsFinished)
             {
                 SetTrayIcon(false);
             }
 
-            IList<Conference> activeConferences = skype.Conferences.Cast<Conference>().ToList();
+            IList<Conference> activeConferences = _skype.Conferences.Cast<Conference>().ToList();
             IList<Conference> finishedConferences = new List<Conference>();
             foreach (Conference conference in ActiveConferences)
             {
@@ -133,16 +133,16 @@ namespace SkypeStandup
 
             if (keyEventArgs.Key == VirtualKey.MEDIA_PLAY_PAUSE)
             {
-                var muted = ((ISkype) skype).Mute;
+                var muted = ((ISkype) _skype).Mute;
                 muted = !muted; // Toggle muted state
-                ((ISkype)skype).Mute = muted;
+                ((ISkype)_skype).Mute = muted;
                 SetTrayIcon(muted);
                 return;
             }
 
             if (keyEventArgs.Key == VirtualKey.MEDIA_STOP)
             {
-                foreach (Call call in skype.ActiveCalls)
+                foreach (Call call in _skype.ActiveCalls)
                 {
                     call.Finish();
                 }
@@ -164,7 +164,7 @@ namespace SkypeStandup
 
         private void muteButton_Click(object sender, RoutedEventArgs e)
         {
-            ((ISkype)skype).Mute = !((ISkype)skype).Mute;
+            ((ISkype)_skype).Mute = !((ISkype)_skype).Mute;
         }
 
         public event PropertyChangedEventHandler PropertyChanged = delegate {};

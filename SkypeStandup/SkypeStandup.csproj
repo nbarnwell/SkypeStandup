@@ -64,8 +64,6 @@
     <Compile Include="ConferenceParticipant.cs" />
     <Compile Include="InterceptKeys.cs" />
     <Compile Include="KeyHookEventArgs.cs" />
-    <Compile Include="MCall.cs" />
-    <Compile Include="MConference.cs" />
     <Compile Include="VirtualKey.cs" />
     <Page Include="Icons.xaml">
       <SubType>Designer</SubType>
