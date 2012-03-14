@@ -56,33 +56,30 @@ namespace SkypeStandup
 
             _skype = new Skype();
             _skype.Attach(7, true);
+            UpdateConferenceList();
             _skype.CallStatus += SkypeOnCallStatus;
-            //this.KeyUp += OnKeyUp;
             KeyboardHook.KeyPressed += OnKeyUp;
             KeyboardHook.SetHooks();
         }
         
         private void SkypeOnCallStatus(Call pCall, TCallStatus status)
         {
-            IList<Conference> activeConferences = _skype.Conferences.Cast<Conference>().ToList();
-            IList<Conference> finishedConferences = new List<Conference>();
-            foreach (Conference conference in ActiveConferences)
-            {
-                Conference c2 = conference;
-                if (activeConferences.Any(c1 => c1 == c2) == false)
-                {
-                    finishedConferences.Add(conference);
-                }
-            }
+            Debug.WriteLine(string.Format("Call from {0} with status {1}", pCall.PartnerDisplayName, status));
+            UpdateConferenceList();
+        }
 
-            foreach (Conference conference in finishedConferences)
+        private void UpdateConferenceList()
+        {
+            IList<Conference> activeConferences = _skype.Conferences.Cast<Conference>().Where(c => c.ActiveCalls.Count > 0).ToList();
+
+            foreach (Conference conference in ActiveConferences.Where(c => !activeConferences.Contains(c)).ToList())
             {
                 ActiveConferences.Remove(conference);
             }
 
-            foreach (Conference conference in activeConferences)
+            foreach (Conference conference in activeConferences.Where(c => !ActiveConferences.Contains(c)).ToList())
             {
-                
+                ActiveConferences.Add(conference);
             }
         }
 
