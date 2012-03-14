@@ -1,1 +1,7 @@
 A very simple app (only a prototype at the time of writing) that listens to Windows Media keypress events using system keyboard hooks in order to mute your mic or hang-up during Skype voice calls.
+
+PLEASE NOTE:
+The "lib" folder contains a copy of SKype4com.dll that you may need to register with regsvr32 before the app will work.
+
+PLEASE PLESAE NOTE:
+Skype will popup an easily-missed "SkypeStandup wants access to Skype. Allow?" dialog that you'll need to confirm before it'll be allowed to talk to Skype. Only on the first run, though.
