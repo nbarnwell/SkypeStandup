@@ -4,16 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using SKYPE4COMLib;
 
 namespace SkypeStandup
@@ -23,18 +15,20 @@ namespace SkypeStandup
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private readonly Skype _skype;
-        private bool _logKeyPresses;
+        const int SkypeProtocol = 9;
+
+        private readonly Skype skype;
+        private bool logKeyPresses;
         public bool LogKeyPresses
         {
-            get { return _logKeyPresses; }
+            get { return logKeyPresses; }
             set
             {
-                if (_logKeyPresses) KeyPresses.Clear();
+                if (logKeyPresses) KeyPresses.Clear();
 
-                if (_logKeyPresses != value)
+                if (logKeyPresses != value)
                 {
-                    _logKeyPresses = value;
+                    logKeyPresses = value;
                     PropertyChanged(this, new PropertyChangedEventArgs("LogKeyPresses"));
                 }
             }
@@ -53,24 +47,73 @@ namespace SkypeStandup
             KeyPresses = new ObservableCollection<string>();
 
             DataContext = this;
+            HideOnMinimize.Enable(this);            
 
-            _skype = new Skype();
-            _skype.Attach(7, true);
-            UpdateConferenceList();
-            _skype.CallStatus += SkypeOnCallStatus;
+            skype = new Skype();
+            skype.CallStatus += SkypeOnCallStatus;
+            ((_ISkypeEvents_Event)skype).AttachmentStatus += SkypeAttachmentStatus;
+            skype.Attach(SkypeProtocol, false);
+            
             KeyboardHook.KeyPressed += OnKeyUp;
             KeyboardHook.SetHooks();
         }
-        
-        private void SkypeOnCallStatus(Call pCall, TCallStatus status)
+
+        public void SkypeAttachmentStatus(TAttachmentStatus status)
         {
-            Debug.WriteLine(string.Format("Call from {0} with status {1}", pCall.PartnerDisplayName, status));
-            UpdateConferenceList();
+            try
+            {
+                if ((((ISkype)skype).AttachmentStatus != TAttachmentStatus.apiAttachSuccess))
+                {
+                    Debug.WriteLine(string.Format("Attachment Status - Converted Status: {0}, TAttachmentStatus: {1}", 
+                        skype.Convert.AttachmentStatusToText((((ISkype)skype).AttachmentStatus)), (((ISkype)skype).AttachmentStatus)));
+                }
+
+                if (status == TAttachmentStatus.apiAttachRefused)
+                {
+                    Debug.WriteLine("The end-user has denied the attach request");
+                }
+
+                // End user could have changed users, try attach again.
+                // Also maybe Skype was not running when we started and now is.
+                if (status == TAttachmentStatus.apiAttachAvailable)
+                {
+                    skype.Attach(SkypeProtocol, false);
+                }
+
+                // Show are now connected to the Skype client.
+                if (status == TAttachmentStatus.apiAttachSuccess)
+                {
+                    Debug.WriteLine("Connected. Attachment Status - Converted Status: {0}, TAttachmentStatus: {1}",
+                        skype.Convert.AttachmentStatusToText((((ISkype)skype).AttachmentStatus)), (((ISkype)skype).AttachmentStatus));
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Attachment status event exception. Source: {0}, Message: {1}",
+                    e.Source, e.Message);
+            }
         }
 
-        private void UpdateConferenceList()
+        private void SkypeOnCallStatus(Call pCall, TCallStatus status)
         {
-            IList<Conference> activeConferences = _skype.Conferences.Cast<Conference>().Where(c => c.ActiveCalls.Count > 0).ToList();
+            Debug.WriteLine("SkypeOnCallStatus event fired. Call: {0}, Status: {1}", 
+                skype.Convert.CallTypeToText(pCall.Type), skype.Convert.CallStatusToText(status));
+
+            if (status == TCallStatus.clsFinished)
+            {
+                SetTrayIcon(false);
+            }
+
+            IList<Conference> activeConferences = skype.Conferences.Cast<Conference>().ToList();
+            IList<Conference> finishedConferences = new List<Conference>();
+            foreach (Conference conference in ActiveConferences)
+            {
+                Conference c2 = conference;
+                if (activeConferences.Any(c1 => c1 == c2) == false)
+                {
+                    finishedConferences.Add(conference);
+                }
+            }
 
             foreach (Conference conference in ActiveConferences.Where(c => !activeConferences.Contains(c)).ToList())
             {
@@ -90,24 +133,51 @@ namespace SkypeStandup
 
             if (keyEventArgs.Key == VirtualKey.MEDIA_PLAY_PAUSE)
             {
-                ((ISkype)_skype).Mute = !((ISkype)_skype).Mute;
+                var muted = ((ISkype) skype).Mute;
+                muted = !muted; // Toggle muted state
+                ((ISkype)skype).Mute = muted;
+                SetTrayIcon(muted);
                 return;
             }
 
             if (keyEventArgs.Key == VirtualKey.MEDIA_STOP)
             {
-                foreach (Call call in _skype.ActiveCalls)
+                foreach (Call call in skype.ActiveCalls)
                 {
                     call.Finish();
                 }
             }
         }
 
+        private void SetTrayIcon(bool muted)
+        {
+            TrayNotifyIcon.IconSource = GetIconSource(muted);
+        }
+
+        private ImageSource GetIconSource(bool muted)
+        {
+            if (muted)
+                return (ImageSource) FindResource("IconMuted");
+
+            return (ImageSource)FindResource("IconUnmuted");
+        }
+
         private void muteButton_Click(object sender, RoutedEventArgs e)
         {
-            ((ISkype)_skype).Mute = !((ISkype)_skype).Mute;
+            ((ISkype)skype).Mute = !((ISkype)skype).Mute;
         }
 
         public event PropertyChangedEventHandler PropertyChanged = delegate {};
+
+        // Old school event handling
+        private void showMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        private void exitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            App.Current.Shutdown();
+        }
     }
 }

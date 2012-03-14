@@ -1,9 +1,31 @@
 ﻿<Window x:Class="SkypeStandup.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         Title="MainWindow" Height="350" Width="525"
-        Style="{StaticResource BlueWindow}">
+        Style="{StaticResource BlueWindow}"
+        Icon="/SkypeStandup;component/Images/skype_256.png">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Icons.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
     <DockPanel>
+        <tb:TaskbarIcon
+            x:Name="TrayNotifyIcon"
+            IconSource="Icons/Unmuted.ico"
+            ToolTipText="Skype Standup"
+            MenuActivation="LeftOrRightClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Show" Click="showMenuItem_Click" />
+                    <MenuItem Header="Exit" Click="exitMenuItem_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
         <Border DockPanel.Dock="Top" BorderBrush="#8CBEFF" BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal" Margin="4">
                 <Button Content="_Mute" Name="muteButton" Click="muteButton_Click" MinWidth="75" />
