@@ -17,6 +17,7 @@ namespace SkypeStandup
     {
         const int SkypeProtocol = 9;
 
+        private TCallStatus _callStatus;
         private readonly Skype _skype;
         private bool _logKeyPresses;
         public bool LogKeyPresses
@@ -99,11 +100,13 @@ namespace SkypeStandup
             Debug.WriteLine("SkypeOnCallStatus event fired. Call: {0}, Status: {1}", 
                 _skype.Convert.CallTypeToText(pCall.Type), _skype.Convert.CallStatusToText(status));
 
+            _callStatus = status;
+
             if (status == TCallStatus.clsFinished)
             {
                 SetTrayIcon(false);
             }
-
+            
             IList<Conference> activeConferences = _skype.Conferences.Cast<Conference>().ToList();
             IList<Conference> finishedConferences = new List<Conference>();
             foreach (Conference conference in ActiveConferences)
@@ -131,7 +134,18 @@ namespace SkypeStandup
             Debug.WriteLine(string.Format("OnKeyUp(sender: {0}, keyEventArgs: {1})", sender, keyEventArgs));
             if (LogKeyPresses) KeyPresses.Insert(0, keyEventArgs.Key.ToString());
 
-            if (keyEventArgs.Key == VirtualKey.MEDIA_PLAY_PAUSE)
+            if (keyEventArgs.Key == VirtualKey.MEDIA_PLAY_PAUSE && _callStatus == TCallStatus.clsRinging)
+            {
+                foreach (Call activeCall in _skype.ActiveCalls)
+                {
+                    if (activeCall.Status == TCallStatus.clsRinging)
+                    {
+                        activeCall.Answer();
+                    }
+                }
+            }
+
+            if (keyEventArgs.Key == VirtualKey.MEDIA_PLAY_PAUSE && _callStatus == TCallStatus.clsInProgress)
             {
                 var muted = ((ISkype) _skype).Mute;
                 muted = !muted; // Toggle muted state
